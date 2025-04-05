@@ -273,7 +273,25 @@
     <button onclick="sendToLedMatrix()">Send to LED Matrix</button>
   </div>
 
+  <!-- Thêm Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+
   <script>
+    // Cấu hình Firebase (thay bằng firebaseConfig của bạn)
+    const firebaseConfig = {
+        apiKey: "AIzaSyBNxKvJCuAK-SUkHOj3mnSdJCyeiN767ew",
+        authDomain: "infouser2-b59dc.firebaseapp.com",
+        projectId: "infouser2-b59dc",
+        storageBucket: "infouser2-b59dc.firebasestorage.app",
+        messagingSenderId: "806920960455",
+        appId: "1:806920960455:web:a8eb7260ca618a77bfc1e2"
+      };
+
+    // Khởi tạo Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
     // Kiểm tra trạng thái đăng nhập ngay khi tải trang
     (function checkLogin() {
       if (!localStorage.getItem('isLoggedIn')) {
@@ -283,8 +301,12 @@
 
     // Hàm đăng xuất
     function logout() {
-      localStorage.removeItem('isLoggedIn');
-      window.location.href = 'login.html';
+      auth.signOut().then(() => {
+        localStorage.removeItem('isLoggedIn');
+        window.location.href = 'login.html';
+      }).catch((error) => {
+        alert('Error logging out: ' + error.message);
+      });
     }
 
     // Hiển thị thời gian hiện tại

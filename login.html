@@ -253,7 +253,27 @@
     </div>
   </div>
 
+  <!-- Thêm Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+
   <script>
+    // Cấu hình Firebase (thay bằng firebaseConfig của bạn)
+    const firebaseConfig = {
+        apiKey: "AIzaSyBNxKvJCuAK-SUkHOj3mnSdJCyeiN767ew",
+        authDomain: "infouser2-b59dc.firebaseapp.com",
+        projectId: "infouser2-b59dc",
+        storageBucket: "infouser2-b59dc.firebasestorage.app",
+        messagingSenderId: "806920960455",
+        appId: "1:806920960455:web:a8eb7260ca618a77bfc1e2"
+      };
+
+    // Khởi tạo Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
 
@@ -300,23 +320,23 @@
         return;
       }
 
-      const backendUrl = 'https://your-backend.onrender.com/register'; // Thay bằng URL backend của bạn trên Render
-      const data = { username, password };
+      // Firebase Authentication yêu cầu email, nên ánh xạ username thành email
+      const email = `${username}@ledmatrix.com`;
 
       try {
-        const response = await fetch(backendUrl, {
-          method: 'POST',
-          body: JSON.stringify(data),
-          headers: { 'Content-Type': 'application/json' }
+        // Đăng ký người dùng với Firebase Authentication
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        // Lưu thông tin người dùng vào Firestore
+        await db.collection('users').doc(user.uid).set({
+          username: username,
+          email: email,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        const result = await response.json();
-        if (result.status === 'success') {
-          alert(result.message);
-          showLoginForm();
-        } else {
-          alert(result.message);
-        }
+        alert('Registration successful! Please login.');
+        showLoginForm();
       } catch (error) {
         alert('Error: ' + error.message);
       }
@@ -331,23 +351,14 @@
         return;
       }
 
-      const backendUrl = 'https://your-backend.onrender.com/login'; // Thay bằng URL backend của bạn trên Render
-      const data = { username, password };
+      // Ánh xạ username thành email
+      const email = `${username}@ledmatrix.com`;
 
       try {
-        const response = await fetch(backendUrl, {
-          method: 'POST',
-          body: JSON.stringify(data),
-          headers: { 'Content-Type': 'application/json' }
-        });
-
-        const result = await response.json();
-        if (result.status === 'success') {
-          localStorage.setItem('isLoggedIn', 'true');
-          window.location.href = 'index.html';
-        } else {
-          alert(result.message);
-        }
+        // Đăng nhập với Firebase Authentication
+        await auth.signInWithEmailAndPassword(email, password);
+        localStorage.setItem('isLoggedIn', 'true');
+        window.location.href = 'index.html';
       } catch (error) {
         alert('Error: ' + error.message);
       }
