@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LED Matrix Timer Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00d4ff;
+      --secondary: #ff007a;
+      --background: #0a0a23;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --glow: rgba(0, 212, 255, 0.5);
+      --text-color: #e0e0e0;
+      --shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--background);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .background-effects {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+      z-index: -1;
+      animation: pulse 10s infinite alternate;
+    }
+
+    .container {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      padding: 2.5rem;
+      border-radius: 20px;
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      box-shadow: var(--shadow);
+      max-width: 800px;
+      width: 90%;
+      text-align: center;
+      animation: fadeIn 1s ease-out;
+    }
+
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.5rem;
+      color: var(--primary);
+      text-shadow: 0 0 15px var(--glow);
+      margin-bottom: 1.5rem;
+    }
+
+    .time-display {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 1.5rem;
+      border-radius: 15px;
+      margin-bottom: 2rem;
+      box-shadow: inset 0 0 10px rgba(0, 212, 255, 0.2);
+    }
+
+    .current-time {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem;
+      color: var(--text-color);
+      margin-bottom: 0.5rem;
+    }
+
+    .current-date {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .countdown-section {
+      margin-bottom: 2rem;
+    }
+
+    .countdown-section h2 {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin-bottom: 1rem;
+      text-shadow: 0 0 10px var(--glow);
+    }
+
+    .countdown-inputs {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .countdown-inputs input {
+      width: 150px;
+      padding: 0.8rem;
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-color);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .countdown-inputs input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px var(--glow);
+      outline: none;
+    }
+
+    .countdown-timer {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2rem;
+    }
+
+    .countdown-timer div {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 1rem;
+      border-radius: 10px;
+      min-width: 80px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+    }
+
+    .countdown-timer span {
+      display: block;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    button {
+      padding: 1rem 2rem;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 15px var(--glow);
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px var(--glow);
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.3; }
+      100% { opacity: 0.6; }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1.5rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .current-time {
+        font-size: 1.5rem;
+      }
+
+      .current-date {
+        font-size: 1rem;
+      }
+
+      .countdown-section h2 {
+        font-size: 1.3rem;
+      }
+
+      .countdown-inputs {
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+
+      .countdown-inputs input {
+        width: 100%;
+      }
+
+      .countdown-timer {
+        font-size: 1.5rem;
+        gap: 1rem;
+      }
+
+      .countdown-timer div {
+        padding: 0.8rem;
+        min-width: 60px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      .current-time {
+        font-size: 1.2rem;
+      }
+
+      .current-date {
+        font-size: 0.9rem;
+      }
+
+      .countdown-timer {
+        font-size: 1.2rem;
+      }
+
+      button {
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="background-effects"></div>
+  <div class="container">
+    <h1>LED Matrix Timer Dashboard</h1>
+
+    <!-- Hiển thị thời gian hiện tại -->
+    <div class="time-display">
+      <div class="current-time" id="currentTime"></div>
+      <div class="current-date" id="currentDate"></div>
+    </div>
+
+    <!-- Đếm ngược -->
+    <div class="countdown-section">
+      <h2>Countdown Timer</h2>
+      <div class="countdown-inputs">
+        <input type="date" id="endDate" required>
+        <input type="time" id="endTime" required>
+      </div>
+      <div class="countdown-timer" id="countdownTimer">
+        <div id="days">00<span>Days</span></div>
+        <div id="hours">00<span>Hours</span></div>
+        <div id="minutes">00<span>Minutes</span></div>
+        <div id="seconds">00<span>Seconds</span></div>
+      </div>
+    </div>
+
+    <!-- Nút gửi đến LED Matrix -->
+    <button onclick="sendToLedMatrix()">Send to LED Matrix</button>
+  </div>
+
+  <script>
+    // Hiển thị thời gian hiện tại
+    function updateCurrentTime() {
+      const now = new Date();
+      const time = now.toLocaleTimeString('en-US', { hour12: false });
+      const date = now.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      document.getElementById('currentTime').textContent = time;
+      document.getElementById('currentDate').textContent = date;
+    }
+
+    // Cập nhật thời gian mỗi giây
+    setInterval(updateCurrentTime, 1000);
+    updateCurrentTime();
+
+    // Đếm ngược
+    let countdownInterval;
+    function startCountdown() {
+      clearInterval(countdownInterval); // Xóa interval cũ nếu có
+
+      const endDateInput = document.getElementById('endDate').value;
+      const endTimeInput = document.getElementById('endTime').value;
+
+      if (!endDateInput || !endTimeInput) {
+        alert('Please select a date and time!');
+        return;
+      }
+
+      const endDateTime = new Date(`${endDateInput}T${endTimeInput}`).getTime();
+
+      countdownInterval = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = endDateTime - now;
+
+        if (distance < 0) {
+          clearInterval(countdownInterval);
+          document.getElementById('days').textContent = '00';
+          document.getElementById('hours').textContent = '00';
+          document.getElementById('minutes').textContent = '00';
+          document.getElementById('seconds').textContent = '00';
+          alert('Countdown has ended!');
+          return;
+        }
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        document.getElementById('days').childNodes[0].textContent = String(days).padStart(2, '0');
+        document.getElementById('hours').childNodes[0].textContent = String(hours).padStart(2, '0');
+        document.getElementById('minutes').childNodes[0].textContent = String(minutes).padStart(2, '0');
+        document.getElementById('seconds').childNodes[0].textContent = String(seconds).padStart(2, '0');
+      }, 1000);
+    }
+
+    // Tự động bắt đầu đếm ngược khi người dùng chọn ngày và giờ
+    document.getElementById('endDate').addEventListener('change', startCountdown);
+    document.getElementById('endTime').addEventListener('change', startCountdown);
+
+    // Gửi dữ liệu đến LED Matrix
+    async function sendToLedMatrix() {
+      const currentTime = document.getElementById('currentTime').textContent;
+      const days = document.getElementById('days').childNodes[0].textContent;
+      const hours = document.getElementById('hours').childNodes[0].textContent;
+      const minutes = document.getElementById('minutes').childNodes[0].textContent;
+      const seconds = document.getElementById('seconds').childNodes[0].textContent;
+
+      // Tạo chuỗi hiển thị cho LED Matrix
+      const message = `Time: ${currentTime} | Countdown: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+
+      const url = 'https://c24b-2402-800-629c-7d19-50ad-ef9-4a17-dd5d.ngrok-free.app/update'; // URL ngrok của bạn
+      const data = `text=${encodeURIComponent(message)}&speed=50&effect=scroll-left&brightness=2&blink=off&blinkInterval=500`;
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: data
+        });
+
+        if (response.ok) {
+          alert('Data sent to LED Matrix successfully!');
+        } else {
+          throw new Error(`Server error: ${response.status}`);
+        }
+      } catch (error) {
+        alert(`Failed to send data: ${error.message}`);
+      }
+    }
+  </script>
+</body>
+</html>
