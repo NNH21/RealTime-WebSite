@@ -56,6 +56,7 @@
       width: 90%;
       text-align: center;
       animation: fadeIn 1s ease-out;
+      position: relative;
     }
 
     h1 {
@@ -245,6 +246,7 @@
   <div class="background-effects"></div>
   <div class="container">
     <h1>LED Matrix Timer Dashboard</h1>
+    <button onclick="logout()" style="position: absolute; top: 20px; right: 20px; padding: 0.5rem 1rem; font-size: 1rem;">Logout</button>
 
     <!-- Hiển thị thời gian hiện tại -->
     <div class="time-display">
@@ -272,6 +274,19 @@
   </div>
 
   <script>
+    // Kiểm tra trạng thái đăng nhập ngay khi tải trang
+    (function checkLogin() {
+      if (!localStorage.getItem('isLoggedIn')) {
+        window.location.href = 'login.html';
+      }
+    })();
+
+    // Hàm đăng xuất
+    function logout() {
+      localStorage.removeItem('isLoggedIn');
+      window.location.href = 'login.html';
+    }
+
     // Hiển thị thời gian hiện tại
     function updateCurrentTime() {
       const now = new Date();
