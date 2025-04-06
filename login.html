@@ -256,7 +256,7 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
-    import { getFirestore, collection, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+    import { getFirestore, collection, doc, setDoc, serverTimestamp, getDocs } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyBNxKvJCuAK-SUkHOj3mnSdJCyeiN767ew",
@@ -273,6 +273,10 @@
 
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
+
+    function showCustomAlert(message) {
+      alert(message); // Bạn có thể thay bằng một modal tùy chỉnh nếu muốn
+    }
 
     function showRegisterForm() {
       loginForm.classList.remove('active');
@@ -306,56 +310,51 @@
       const usernameInput = document.getElementById('register-username').value.trim();
       const password = document.getElementById('register-password').value;
       const confirmPassword = document.getElementById('confirm-password').value;
-    
+
       if (!usernameInput || !password || !confirmPassword) {
         showCustomAlert('Vui lòng nhập đầy đủ thông tin!');
         return;
       }
-    
+
       if (password !== confirmPassword) {
         showCustomAlert('Mật khẩu xác nhận không khớp!');
         return;
       }
-    
+
       if (password.length < 6) {
         showCustomAlert('Mật khẩu phải có ít nhất 6 ký tự!');
         return;
       }
-    
-      // Tạo email từ username (theo định dạng của bạn)
+
       const email = `${usernameInput}@ledmatrix.com`;
-    
+
       try {
         console.log('Bắt đầu đăng ký...');
-    
-        // Kiểm tra email đã tồn tại chưa
+
         try {
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           const user = userCredential.user;
           console.log('Người dùng đã được đăng ký trong Authentication:', user.uid);
-    
-          // Lấy số thứ tự từ Firestore
+
           console.log('Đang lấy số thứ tự từ Firestore...');
           const usersCollection = collection(db, 'users');
           const usersSnapshot = await getDocs(usersCollection);
-          const userCount = usersSnapshot.size; // Đếm số lượng người dùng hiện có
-          const newUserNumber = userCount + 1; // Số thứ tự của người dùng mới
-          const newUsername = `user${newUserNumber}`; // Tạo username: user1, user2,...
-    
-          // Lưu thông tin người dùng vào Firestore với username có số thứ tự
+          const userCount = usersSnapshot.size;
+          const newUserNumber = userCount + 1;
+          const newUsername = `user${newUserNumber}`;
+
           console.log('Đang lưu thông tin người dùng vào Firestore...');
           await setDoc(doc(usersCollection, user.uid), {
-            username: newUsername, // Lưu username dạng user1, user2,...
+            username: newUsername,
             email: email,
-            originalUsername: usernameInput, // Lưu username gốc mà người dùng nhập (nếu cần)
+            originalUsername: usernameInput,
             createdAt: serverTimestamp()
           });
           console.log('Thông tin người dùng đã được lưu vào Firestore thành công:', newUsername);
-    
-          // Đăng xuất sau khi đăng ký
+
           await signOut(auth);
           console.log('Người dùng đã được đăng xuất sau khi đăng ký.');
-    
+
           showCustomAlert('Đăng ký thành công! Vui lòng đăng nhập.');
           showLoginForm();
         } catch (error) {
@@ -363,7 +362,7 @@
             showCustomAlert('Tên người dùng này đã được sử dụng. Vui lòng đăng nhập hoặc chọn tên khác.');
             showLoginForm();
           } else {
-            throw error; // Ném lỗi để xử lý ở catch bên ngoài
+            throw error;
           }
         }
       } catch (error) {
@@ -377,7 +376,7 @@
       const password = document.getElementById('login-password').value;
 
       if (!username || !password) {
-        alert('Please enter both username and password!');
+        showCustomAlert('Vui lòng nhập đầy đủ tên người dùng và mật khẩu!');
         return;
       }
 
@@ -390,8 +389,8 @@
         localStorage.setItem('userId', user.uid);
         window.location.href = 'index.html';
       } catch (error) {
-        console.error('Login error:', error);
-        alert('Error: ' + error.message);
+        console.error('Lỗi đăng nhập:', error);
+        showCustomAlert('Lỗi: ' + error.message);
       }
     }
 
@@ -403,6 +402,7 @@
       }
     });
 
+    window.showCustomAlert = showCustomAlert;
     window.showRegisterForm = showRegisterForm;
     window.showLoginForm = showLoginForm;
     window.togglePassword = togglePassword;
