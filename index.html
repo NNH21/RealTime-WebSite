@@ -273,35 +273,35 @@
       <button onclick="sendToLedMatrix()">Send to LED Matrix</button>
     </div>
 
-    <!-- Thêm Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js"></script>
-
-    <script>
-      // Cấu hình Firebase (thay bằng firebaseConfig của bạn)
+    <script type="module">
+      // Import các module Firebase
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
+      import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
+    
+      // Cấu hình Firebase
       const firebaseConfig = {
-          apiKey: "AIzaSyBNxKvJCuAK-SUkHOj3mnSdJCyeiN767ew",
-          authDomain: "infouser2-b59dc.firebaseapp.com",
-          projectId: "infouser2-b59dc",
-          storageBucket: "infouser2-b59dc.firebasestorage.app",
-          messagingSenderId: "806920960455",
-          appId: "1:806920960455:web:a8eb7260ca618a77bfc1e2"
-        };
-
+        apiKey: "AIzaSyBNxKvJCuAK-SUkHOj3mnSdJCyeiN767ew",
+        authDomain: "infouser2-b59dc.firebaseapp.com",
+        projectId: "infouser2-b59dc",
+        storageBucket: "infouser2-b59dc.firebasestorage.app",
+        messagingSenderId: "806920960455",
+        appId: "1:806920960455:web:a8eb7260ca618a77bfc1e2"
+      };
+    
       // Khởi tạo Firebase
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth();
-            
-      // Kiểm tra trạng thái đăng nhập khi tải trang
-      auth.onAuthStateChanged((user) => {
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+    
+      // Kiểm tra trạng thái đăng nhập
+      onAuthStateChanged(auth, (user) => {
         if (!user || !localStorage.getItem('isLoggedIn')) {
           window.location.href = 'login.html';
         }
       });
-      
+    
       // Hàm đăng xuất
       function logout() {
-        auth.signOut().then(() => {
+        signOut(auth).then(() => {
           localStorage.removeItem('isLoggedIn');
           localStorage.removeItem('userId');
           window.location.href = 'login.html';
@@ -310,9 +310,7 @@
           alert('Error logging out: ' + error.message);
         });
       }
-
-// Các hàm còn lại (updateCurrentTime, startCountdown, sendToLedMatrix) giữ nguyên
-
+    
       // Hiển thị thời gian hiện tại
       function updateCurrentTime() {
         const now = new Date();
@@ -323,34 +321,32 @@
           month: 'long',
           day: 'numeric'
         });
-
+    
         document.getElementById('currentTime').textContent = time;
         document.getElementById('currentDate').textContent = date;
       }
-
-      // Cập nhật thời gian mỗi giây
+    
       setInterval(updateCurrentTime, 1000);
       updateCurrentTime();
-
-      // Đếm ngược
+    
       let countdownInterval;
       function startCountdown() {
-        clearInterval(countdownInterval); // Xóa interval cũ nếu có
-
+        clearInterval(countdownInterval);
+    
         const endDateInput = document.getElementById('endDate').value;
         const endTimeInput = document.getElementById('endTime').value;
-
+    
         if (!endDateInput || !endTimeInput) {
           alert('Please select a date and time!');
           return;
         }
-
+    
         const endDateTime = new Date(`${endDateInput}T${endTimeInput}`).getTime();
-
+    
         countdownInterval = setInterval(() => {
           const now = new Date().getTime();
           const distance = endDateTime - now;
-
+    
           if (distance < 0) {
             clearInterval(countdownInterval);
             document.getElementById('days').textContent = '00';
@@ -360,37 +356,34 @@
             alert('Countdown has ended!');
             return;
           }
-
+    
           const days = Math.floor(distance / (1000 * 60 * 60 * 24));
           const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
           const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
+    
           document.getElementById('days').childNodes[0].textContent = String(days).padStart(2, '0');
           document.getElementById('hours').childNodes[0].textContent = String(hours).padStart(2, '0');
           document.getElementById('minutes').childNodes[0].textContent = String(minutes).padStart(2, '0');
           document.getElementById('seconds').childNodes[0].textContent = String(seconds).padStart(2, '0');
         }, 1000);
       }
-
-      // Tự động bắt đầu đếm ngược khi người dùng chọn ngày và giờ
+    
       document.getElementById('endDate').addEventListener('change', startCountdown);
       document.getElementById('endTime').addEventListener('change', startCountdown);
-
-      // Gửi dữ liệu đến LED Matrix
+    
       async function sendToLedMatrix() {
         const currentTime = document.getElementById('currentTime').textContent;
         const days = document.getElementById('days').childNodes[0].textContent;
         const hours = document.getElementById('hours').childNodes[0].textContent;
         const minutes = document.getElementById('minutes').childNodes[0].textContent;
         const seconds = document.getElementById('seconds').childNodes[0].textContent;
-
-        // Tạo chuỗi hiển thị cho LED Matrix
+    
         const message = `Time: ${currentTime} | Countdown: ${days}d ${hours}h ${minutes}m ${seconds}s`;
-
-        const url = 'https://c24b-2402-800-629c-7d19-50ad-ef9-4a17-dd5d.ngrok-free.app/update'; // URL ngrok của bạn
+    
+        const url = 'https://c24b-2402-800-629c-7d19-50ad-ef9-4a17-dd5d.ngrok-free.app/update';
         const data = `text=${encodeURIComponent(message)}&speed=50&effect=scroll-left&brightness=2&blink=off&blinkInterval=500`;
-
+    
         try {
           const response = await fetch(url, {
             method: 'POST',
@@ -399,7 +392,7 @@
             },
             body: data
           });
-
+    
           if (response.ok) {
             alert('Data sent to LED Matrix successfully!');
           } else {

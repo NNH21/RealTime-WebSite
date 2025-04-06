@@ -253,121 +253,129 @@
     </div>
   </div>
 
-  <!-- Thêm Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js"></script>
+  <!-- Xóa các thẻ <script> cũ -->
+<!-- Thêm thẻ <script> với type="module" -->
+<script type="module">
+  // Import các module Firebase
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
+  import { getFirestore, collection, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
 
-  <script>
-    // Cấu hình Firebase (thay bằng firebaseConfig của bạn)
-    const firebaseConfig = {
-        apiKey: "AIzaSyBNxKvJCuAK-SUkHOj3mnSdJCyeiN767ew",
-        authDomain: "infouser2-b59dc.firebaseapp.com",
-        projectId: "infouser2-b59dc",
-        storageBucket: "infouser2-b59dc.firebasestorage.app",
-        messagingSenderId: "806920960455",
-        appId: "1:806920960455:web:a8eb7260ca618a77bfc1e2"
-      };
+  // Cấu hình Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyBNxKvJCuAK-SUkHOj3mnSdJCyeiN767ew",
+    authDomain: "infouser2-b59dc.firebaseapp.com",
+    projectId: "infouser2-b59dc",
+    storageBucket: "infouser2-b59dc.firebasestorage.app",
+    messagingSenderId: "806920960455",
+    appId: "1:806920960455:web:a8eb7260ca618a77bfc1e2"
+  };
 
-// Khởi tạo Firebase
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+  // Khởi tạo Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-function showRegisterForm() {
-  loginForm.classList.remove('active');
-  loginForm.classList.add('hidden');
-  registerForm.classList.remove('hidden');
-  registerForm.classList.add('active');
-}
+  // Khai báo biến loginForm và registerForm trước khi sử dụng
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
 
-function showLoginForm() {
-  registerForm.classList.remove('active');
-  registerForm.classList.add('hidden');
-  loginForm.classList.remove('hidden');
-  loginForm.classList.add('active');
-}
-
-function togglePassword(inputId) {
-  const input = document.getElementById(inputId);
-  const icon = input.nextElementSibling;
-  if (input.type === 'password') {
-    input.type = 'text';
-    icon.classList.remove('fa-eye');
-    icon.classList.add('fa-eye-slash');
-  } else {
-    input.type = 'password';
-    icon.classList.remove('fa-eye-slash');
-    icon.classList.add('fa-eye');
-  }
-}
-
-async function register() {
-  const username = document.getElementById('register-username').value.trim();
-  const password = document.getElementById('register-password').value;
-  const confirmPassword = document.getElementById('confirm-password').value;
-
-  if (!username || !password || !confirmPassword) {
-    alert('Please fill in all fields!');
-    return;
+  // Hàm chuyển đổi form
+  function showRegisterForm() {
+    loginForm.classList.remove('active');
+    loginForm.classList.add('hidden');
+    registerForm.classList.remove('hidden');
+    registerForm.classList.add('active');
   }
 
-  if (password !== confirmPassword) {
-    alert('Passwords do not match!');
-    return;
+  function showLoginForm() {
+    registerForm.classList.remove('active');
+    registerForm.classList.add('hidden');
+    loginForm.classList.remove('hidden');
+    loginForm.classList.add('active');
   }
 
-  const email = `${username}@ledmatrix.com`;
-
-  try {
-    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-    const user = userCredential.user;
-
-    await db.collection('users').doc(user.uid).set({
-      username: username,
-      email: email,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    alert('Registration successful! Please login.');
-    showLoginForm();
-  } catch (error) {
-    console.error('Registration error:', error); // Ghi log để debug
-    alert('Error: ' + error.message);
-  }
-}
-
-async function login() {
-  const username = document.getElementById('login-username').value.trim();
-  const password = document.getElementById('login-password').value;
-
-  if (!username || !password) {
-    alert('Please enter both username and password!');
-    return;
+  function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = input.nextElementSibling;
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
   }
 
-  const email = `${username}@ledmatrix.com`;
+  async function register() {
+    const username = document.getElementById('register-username').value.trim();
+    const password = document.getElementById('register-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
 
-  try {
-    const userCredential = await auth.signInWithEmailAndPassword(email, password);
-    const user = userCredential.user;
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userId', user.uid); // Lưu UID để kiểm tra
-    window.location.href = 'index.html';
-  } catch (error) {
-    console.error('Login error:', error); // Ghi log để debug
-    alert('Error: ' + error.message);
-  }
-}
+    if (!username || !password || !confirmPassword) {
+      alert('Please fill in all fields!');
+      return;
+    }
 
-// Kiểm tra trạng thái đăng nhập khi tải trang
-auth.onAuthStateChanged((user) => {
-  if (user) {
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userId', user.uid);
-    window.location.href = 'index.html';
+    if (password !== confirmPassword) {
+      alert('Passwords do not match!');
+      return;
+    }
+
+    const email = `${username}@ledmatrix.com`;
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Lưu thông tin người dùng vào Firestore
+      await setDoc(doc(collection(db, 'users'), user.uid), {
+        username: username,
+        email: email,
+        createdAt: serverTimestamp()
+      });
+
+      alert('Registration successful! Please login.');
+      showLoginForm();
+    } catch (error) {
+      console.error('Registration error:', error);
+      alert('Error: ' + error.message);
+    }
   }
-});
-  </script>
+
+  async function login() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+
+    if (!username || !password) {
+      alert('Please enter both username and password!');
+      return;
+    }
+
+    const email = `${username}@ledmatrix.com`;
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userId', user.uid);
+      window.location.href = 'index.html';
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('Error: ' + error.message);
+    }
+  }
+
+  // Kiểm tra trạng thái đăng nhập
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userId', user.uid);
+      window.location.href = 'index.html';
+    }
+  });
+</script>
 </body>
 </html>
