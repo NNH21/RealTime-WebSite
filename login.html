@@ -254,12 +254,10 @@
   </div>
 
   <script type="module">
-    // Import các module Firebase
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
     import { getFirestore, collection, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
-  
-    // Cấu hình Firebase
+
     const firebaseConfig = {
       apiKey: "AIzaSyBNxKvJCuAK-SUkHOj3mnSdJCyeiN767ew",
       authDomain: "infouser2-b59dc.firebaseapp.com",
@@ -268,32 +266,28 @@
       messagingSenderId: "806920960455",
       appId: "1:806920960455:web:a8eb7260ca618a77bfc1e2"
     };
-  
-    // Khởi tạo Firebase
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-  
-    // Khai báo biến loginForm và registerForm
+
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
-  
-    // Hàm chuyển đổi form
+
     function showRegisterForm() {
       loginForm.classList.remove('active');
       loginForm.classList.add('hidden');
       registerForm.classList.remove('hidden');
       registerForm.classList.add('active');
     }
-  
+
     function showLoginForm() {
       registerForm.classList.remove('active');
       registerForm.classList.add('hidden');
       loginForm.classList.remove('hidden');
       loginForm.classList.add('active');
     }
-  
-    // Hàm hiển thị/ẩn mật khẩu
+
     function togglePassword(inputId) {
       const input = document.getElementById(inputId);
       const icon = input.nextElementSibling;
@@ -307,31 +301,30 @@
         icon.classList.add('fa-eye');
       }
     }
-  
+
     async function register() {
       const username = document.getElementById('register-username').value.trim();
       const password = document.getElementById('register-password').value;
       const confirmPassword = document.getElementById('confirm-password').value;
-    
+
       if (!username || !password || !confirmPassword) {
         alert('Please fill in all fields!');
         return;
       }
-    
+
       if (password !== confirmPassword) {
         alert('Passwords do not match!');
         return;
       }
-    
+
       const email = `${username}@ledmatrix.com`;
-    
+
       try {
         console.log('Starting registration...');
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         console.log('User registered in Authentication:', user.uid);
-    
-        // Lưu thông tin người dùng vào Firestore
+
         console.log('Saving user data to Firestore...');
         await setDoc(doc(collection(db, 'users'), user.uid), {
           username: username,
@@ -339,31 +332,34 @@
           createdAt: serverTimestamp()
         });
         console.log('User data saved to Firestore successfully.');
-    
-        // Đăng xuất ngay sau khi đăng ký
+
         await signOut(auth);
         console.log('User signed out after registration.');
-    
+
         alert('Registration successful! Please login.');
         showLoginForm();
       } catch (error) {
         console.error('Registration error:', error);
-        alert('Error: ' + error.message);
+        if (error.code === 'auth/email-already-in-use') {
+          alert('This username is already taken. Please login or use a different username.');
+          showLoginForm();
+        } else {
+          alert('Error: ' + error.message);
+        }
       }
     }
-  
-    // Hàm đăng nhập
+
     async function login() {
       const username = document.getElementById('login-username').value.trim();
       const password = document.getElementById('login-password').value;
-  
+
       if (!username || !password) {
         alert('Please enter both username and password!');
         return;
       }
-  
+
       const email = `${username}@ledmatrix.com`;
-  
+
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
@@ -375,17 +371,15 @@
         alert('Error: ' + error.message);
       }
     }
-  
-      onAuthStateChanged(auth, (user) => {
-      // Chỉ chuyển hướng nếu người dùng đang ở form đăng nhập và không phải vừa đăng ký
+
+    onAuthStateChanged(auth, (user) => {
       if (user && loginForm.classList.contains('active')) {
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('userId', user.uid);
         window.location.href = 'index.html';
       }
     });
-  
-    // Gắn các hàm vào window để có thể gọi từ HTML
+
     window.showRegisterForm = showRegisterForm;
     window.showLoginForm = showLoginForm;
     window.togglePassword = togglePassword;
