@@ -256,7 +256,7 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
-    import { getFirestore, collection, doc, setDoc, serverTimestamp, getDocs } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+    import { getFirestore, collection, doc, setDoc, serverTimestamp, getDocs, getDoc, runTransaction } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyBNxKvJCuAK-SUkHOj3mnSdJCyeiN767ew",
@@ -275,7 +275,7 @@
     const registerForm = document.getElementById('register-form');
 
     function showCustomAlert(message) {
-      alert(message); // Bạn có thể thay bằng một modal tùy chỉnh nếu muốn
+      alert(message);
     }
 
     function showRegisterForm() {
@@ -336,14 +336,26 @@
           const user = userCredential.user;
           console.log('Người dùng đã được đăng ký trong Authentication:', user.uid);
 
-          console.log('Đang lấy số thứ tự từ Firestore...');
-          const usersCollection = collection(db, 'users');
-          const usersSnapshot = await getDocs(usersCollection);
-          const userCount = usersSnapshot.size;
-          const newUserNumber = userCount + 1;
+          // Sử dụng giao dịch để tăng số thứ tự
+          console.log('Đang lấy và tăng số thứ tự từ Firestore...');
+          const counterDocRef = doc(db, 'metadata', 'userCounter');
+          const newUserNumber = await runTransaction(db, async (transaction) => {
+            const counterDoc = await transaction.get(counterDocRef);
+            let newCount;
+            if (!counterDoc.exists()) {
+              newCount = 1;
+            } else {
+              newCount = counterDoc.data().count + 1;
+            }
+            transaction.set(counterDocRef, { count: newCount }, { merge: true });
+            return newCount;
+          });
+
           const newUsername = `user${newUserNumber}`;
 
+          // Lưu thông tin người dùng vào Firestore
           console.log('Đang lưu thông tin người dùng vào Firestore...');
+          const usersCollection = collection(db, 'users');
           await setDoc(doc(usersCollection, user.uid), {
             username: newUsername,
             email: email,
