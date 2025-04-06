@@ -254,9 +254,9 @@
   </div>
 
   <!-- Thêm Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js"></script>
 
   <script>
     // Cấu hình Firebase (thay bằng firebaseConfig của bạn)
@@ -269,100 +269,105 @@
         appId: "1:806920960455:web:a8eb7260ca618a77bfc1e2"
       };
 
-    // Khởi tạo Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+// Khởi tạo Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-    const loginForm = document.getElementById('login-form');
-    const registerForm = document.getElementById('register-form');
+function showRegisterForm() {
+  loginForm.classList.remove('active');
+  loginForm.classList.add('hidden');
+  registerForm.classList.remove('hidden');
+  registerForm.classList.add('active');
+}
 
-    function showRegisterForm() {
-      loginForm.classList.remove('active');
-      loginForm.classList.add('hidden');
-      registerForm.classList.remove('hidden');
-      registerForm.classList.add('active');
-    }
+function showLoginForm() {
+  registerForm.classList.remove('active');
+  registerForm.classList.add('hidden');
+  loginForm.classList.remove('hidden');
+  loginForm.classList.add('active');
+}
 
-    function showLoginForm() {
-      registerForm.classList.remove('active');
-      registerForm.classList.add('hidden');
-      loginForm.classList.remove('hidden');
-      loginForm.classList.add('active');
-    }
+function togglePassword(inputId) {
+  const input = document.getElementById(inputId);
+  const icon = input.nextElementSibling;
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  } else {
+    input.type = 'password';
+    icon.classList.remove('fa-eye-slash');
+    icon.classList.add('fa-eye');
+  }
+}
 
-    function togglePassword(inputId) {
-      const input = document.getElementById(inputId);
-      const icon = input.nextElementSibling;
-      if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-      } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-      }
-    }
+async function register() {
+  const username = document.getElementById('register-username').value.trim();
+  const password = document.getElementById('register-password').value;
+  const confirmPassword = document.getElementById('confirm-password').value;
 
-    async function register() {
-      const username = document.getElementById('register-username').value;
-      const password = document.getElementById('register-password').value;
-      const confirmPassword = document.getElementById('confirm-password').value;
+  if (!username || !password || !confirmPassword) {
+    alert('Please fill in all fields!');
+    return;
+  }
 
-      if (!username || !password || !confirmPassword) {
-        alert('Please fill in all fields!');
-        return;
-      }
+  if (password !== confirmPassword) {
+    alert('Passwords do not match!');
+    return;
+  }
 
-      if (password !== confirmPassword) {
-        alert('Passwords do not match!');
-        return;
-      }
+  const email = `${username}@ledmatrix.com`;
 
-      // Firebase Authentication yêu cầu email, nên ánh xạ username thành email
-      const email = `${username}@ledmatrix.com`;
+  try {
+    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+    const user = userCredential.user;
 
-      try {
-        // Đăng ký người dùng với Firebase Authentication
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        const user = userCredential.user;
+    await db.collection('users').doc(user.uid).set({
+      username: username,
+      email: email,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
 
-        // Lưu thông tin người dùng vào Firestore
-        await db.collection('users').doc(user.uid).set({
-          username: username,
-          email: email,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+    alert('Registration successful! Please login.');
+    showLoginForm();
+  } catch (error) {
+    console.error('Registration error:', error); // Ghi log để debug
+    alert('Error: ' + error.message);
+  }
+}
 
-        alert('Registration successful! Please login.');
-        showLoginForm();
-      } catch (error) {
-        alert('Error: ' + error.message);
-      }
-    }
+async function login() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
 
-    async function login() {
-      const username = document.getElementById('login-username').value;
-      const password = document.getElementById('login-password').value;
+  if (!username || !password) {
+    alert('Please enter both username and password!');
+    return;
+  }
 
-      if (!username || !password) {
-        alert('Please enter both username and password!');
-        return;
-      }
+  const email = `${username}@ledmatrix.com`;
 
-      // Ánh xạ username thành email
-      const email = `${username}@ledmatrix.com`;
+  try {
+    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+    const user = userCredential.user;
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('userId', user.uid); // Lưu UID để kiểm tra
+    window.location.href = 'index.html';
+  } catch (error) {
+    console.error('Login error:', error); // Ghi log để debug
+    alert('Error: ' + error.message);
+  }
+}
 
-      try {
-        // Đăng nhập với Firebase Authentication
-        await auth.signInWithEmailAndPassword(email, password);
-        localStorage.setItem('isLoggedIn', 'true');
-        window.location.href = 'index.html';
-      } catch (error) {
-        alert('Error: ' + error.message);
-      }
-    }
+// Kiểm tra trạng thái đăng nhập khi tải trang
+auth.onAuthStateChanged((user) => {
+  if (user) {
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('userId', user.uid);
+    window.location.href = 'index.html';
+  }
+});
   </script>
 </body>
 </html>
