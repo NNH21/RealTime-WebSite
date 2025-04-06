@@ -310,32 +310,32 @@
       const usernameInput = document.getElementById('register-username').value.trim();
       const password = document.getElementById('register-password').value;
       const confirmPassword = document.getElementById('confirm-password').value;
-
+    
       if (!usernameInput || !password || !confirmPassword) {
         showCustomAlert('Vui lòng nhập đầy đủ thông tin!');
         return;
       }
-
+    
       if (password !== confirmPassword) {
         showCustomAlert('Mật khẩu xác nhận không khớp!');
         return;
       }
-
+    
       if (password.length < 6) {
         showCustomAlert('Mật khẩu phải có ít nhất 6 ký tự!');
         return;
       }
-
+    
       const email = `${usernameInput}@ledmatrix.com`;
-
+    
       try {
         console.log('Bắt đầu đăng ký...');
-
+    
         try {
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           const user = userCredential.user;
           console.log('Người dùng đã được đăng ký trong Authentication:', user.uid);
-
+    
           // Sử dụng giao dịch để tăng số thứ tự
           console.log('Đang lấy và tăng số thứ tự từ Firestore...');
           const counterDocRef = doc(db, 'metadata', 'userCounter');
@@ -350,23 +350,23 @@
             transaction.set(counterDocRef, { count: newCount }, { merge: true });
             return newCount;
           });
-
+    
           const newUsername = `user${newUserNumber}`;
-
-          // Lưu thông tin người dùng vào Firestore
+    
+          // Lưu thông tin người dùng vào Firestore với document ID là newUsername
           console.log('Đang lưu thông tin người dùng vào Firestore...');
-          const usersCollection = collection(db, 'users');
-          await setDoc(doc(usersCollection, user.uid), {
-            username: newUsername,
-            email: email,
-            originalUsername: usernameInput,
+          const userDocRef = doc(db, 'users', newUsername); // Sử dụng newUsername làm document ID
+          await setDoc(userDocRef, {
+            username: usernameInput, // Tên đăng nhập người dùng nhập
+            password: password, // Mật khẩu (lưu ý: không an toàn, chỉ làm theo yêu cầu)
+            uid: user.uid, // Lưu UID để kiểm tra quyền truy cập
             createdAt: serverTimestamp()
           });
           console.log('Thông tin người dùng đã được lưu vào Firestore thành công:', newUsername);
-
+    
           await signOut(auth);
           console.log('Người dùng đã được đăng xuất sau khi đăng ký.');
-
+    
           showCustomAlert('Đăng ký thành công! Vui lòng đăng nhập.');
           showLoginForm();
         } catch (error) {
