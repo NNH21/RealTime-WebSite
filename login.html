@@ -303,49 +303,72 @@
     }
 
     async function register() {
-      const username = document.getElementById('register-username').value.trim();
+      const usernameInput = document.getElementById('register-username').value.trim();
       const password = document.getElementById('register-password').value;
       const confirmPassword = document.getElementById('confirm-password').value;
-
-      if (!username || !password || !confirmPassword) {
-        alert('Please fill in all fields!');
+    
+      if (!usernameInput || !password || !confirmPassword) {
+        showCustomAlert('Vui lòng nhập đầy đủ thông tin!');
         return;
       }
-
+    
       if (password !== confirmPassword) {
-        alert('Passwords do not match!');
+        showCustomAlert('Mật khẩu xác nhận không khớp!');
         return;
       }
-
-      const email = `${username}@ledmatrix.com`;
-
+    
+      if (password.length < 6) {
+        showCustomAlert('Mật khẩu phải có ít nhất 6 ký tự!');
+        return;
+      }
+    
+      // Tạo email từ username (theo định dạng của bạn)
+      const email = `${usernameInput}@ledmatrix.com`;
+    
       try {
-        console.log('Starting registration...');
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        console.log('User registered in Authentication:', user.uid);
-
-        console.log('Saving user data to Firestore...');
-        await setDoc(doc(collection(db, 'users'), user.uid), {
-          username: username,
-          email: email,
-          createdAt: serverTimestamp()
-        });
-        console.log('User data saved to Firestore successfully.');
-
-        await signOut(auth);
-        console.log('User signed out after registration.');
-
-        alert('Registration successful! Please login.');
-        showLoginForm();
-      } catch (error) {
-        console.error('Registration error:', error);
-        if (error.code === 'auth/email-already-in-use') {
-          alert('This username is already taken. Please login or use a different username.');
+        console.log('Bắt đầu đăng ký...');
+    
+        // Kiểm tra email đã tồn tại chưa
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+          console.log('Người dùng đã được đăng ký trong Authentication:', user.uid);
+    
+          // Lấy số thứ tự từ Firestore
+          console.log('Đang lấy số thứ tự từ Firestore...');
+          const usersCollection = collection(db, 'users');
+          const usersSnapshot = await getDocs(usersCollection);
+          const userCount = usersSnapshot.size; // Đếm số lượng người dùng hiện có
+          const newUserNumber = userCount + 1; // Số thứ tự của người dùng mới
+          const newUsername = `user${newUserNumber}`; // Tạo username: user1, user2,...
+    
+          // Lưu thông tin người dùng vào Firestore với username có số thứ tự
+          console.log('Đang lưu thông tin người dùng vào Firestore...');
+          await setDoc(doc(usersCollection, user.uid), {
+            username: newUsername, // Lưu username dạng user1, user2,...
+            email: email,
+            originalUsername: usernameInput, // Lưu username gốc mà người dùng nhập (nếu cần)
+            createdAt: serverTimestamp()
+          });
+          console.log('Thông tin người dùng đã được lưu vào Firestore thành công:', newUsername);
+    
+          // Đăng xuất sau khi đăng ký
+          await signOut(auth);
+          console.log('Người dùng đã được đăng xuất sau khi đăng ký.');
+    
+          showCustomAlert('Đăng ký thành công! Vui lòng đăng nhập.');
           showLoginForm();
-        } else {
-          alert('Error: ' + error.message);
+        } catch (error) {
+          if (error.code === 'auth/email-already-in-use') {
+            showCustomAlert('Tên người dùng này đã được sử dụng. Vui lòng đăng nhập hoặc chọn tên khác.');
+            showLoginForm();
+          } else {
+            throw error; // Ném lỗi để xử lý ở catch bên ngoài
+          }
         }
+      } catch (error) {
+        console.error('Lỗi đăng ký:', error);
+        showCustomAlert('Lỗi: ' + error.message);
       }
     }
 
