@@ -308,35 +308,42 @@
       }
     }
   
-    // Hàm đăng ký
     async function register() {
       const username = document.getElementById('register-username').value.trim();
       const password = document.getElementById('register-password').value;
       const confirmPassword = document.getElementById('confirm-password').value;
-  
+    
       if (!username || !password || !confirmPassword) {
         alert('Please fill in all fields!');
         return;
       }
-  
+    
       if (password !== confirmPassword) {
         alert('Passwords do not match!');
         return;
       }
-  
+    
       const email = `${username}@ledmatrix.com`;
-  
+    
       try {
+        console.log('Starting registration...');
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-  
+        console.log('User registered in Authentication:', user.uid);
+    
         // Lưu thông tin người dùng vào Firestore
+        console.log('Saving user data to Firestore...');
         await setDoc(doc(collection(db, 'users'), user.uid), {
           username: username,
           email: email,
           createdAt: serverTimestamp()
         });
-  
+        console.log('User data saved to Firestore successfully.');
+    
+        // Đăng xuất ngay sau khi đăng ký
+        await signOut(auth);
+        console.log('User signed out after registration.');
+    
         alert('Registration successful! Please login.');
         showLoginForm();
       } catch (error) {
@@ -369,9 +376,9 @@
       }
     }
   
-    // Kiểm tra trạng thái đăng nhập
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
+      onAuthStateChanged(auth, (user) => {
+      // Chỉ chuyển hướng nếu người dùng đang ở form đăng nhập và không phải vừa đăng ký
+      if (user && loginForm.classList.contains('active')) {
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('userId', user.uid);
         window.location.href = 'index.html';
