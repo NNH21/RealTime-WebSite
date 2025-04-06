@@ -7,16 +7,32 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <style>
-    body {
+    :root {
+      --primary: #00d4ff;
+      --secondary: #ff007a;
+      --background: #0a0a23;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --glow: rgba(0, 212, 255, 0.5);
+      --text-color: #e0e0e0;
+      --shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    }
+
+    * {
       margin: 0;
       padding: 0;
-      height: 100vh;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--background);
+      color: var(--text-color);
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      background: linear-gradient(135deg, #1e1e2f 0%, #2e2e4f 100%);
-      font-family: 'Poppins', sans-serif;
       overflow: hidden;
+      position: relative;
     }
 
     .background-effects {
@@ -25,149 +41,183 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-      z-index: 0;
+      background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+      z-index: -1;
+      animation: pulse 10s infinite alternate;
     }
 
     .login-container {
-      background: rgba(30, 30, 47, 0.9);
-      padding: 40px;
-      border-radius: 15px;
-      box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+      background: var(--card-bg);
       backdrop-filter: blur(10px);
-      z-index: 1;
-      width: 100%;
+      padding: 2.5rem;
+      border-radius: 20px;
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      box-shadow: var(--shadow);
       max-width: 400px;
+      width: 90%;
       text-align: center;
-      border: 1px solid rgba(0, 255, 255, 0.3);
+      animation: fadeIn 1s ease-out;
     }
 
     h2 {
-      color: #00f0ff;
       font-family: 'Orbitron', sans-serif;
-      font-size: 28px;
-      margin-bottom: 30px;
-      text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+      font-size: 2rem;
+      color: var(--primary);
+      text-shadow: 0 0 15px var(--glow);
+      margin-bottom: 2rem;
     }
 
     .form-wrapper {
       position: relative;
+      width: 100%;
+      height: 350px;
+      overflow: hidden;
     }
 
     .form {
-      display: none;
-      transition: opacity 0.3s ease;
+      position: absolute;
+      width: 100%;
+      transition: transform 0.5s ease, opacity 0.5s ease;
+      opacity: 0;
     }
 
-    .form.active {
-      display: block;
+    #login-form.active {
+      transform: translateX(0);
       opacity: 1;
     }
 
-    .form.hidden {
+    #register-form.active {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    #login-form.hidden {
+      transform: translateX(-100%);
       opacity: 0;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
+    }
+
+    #register-form.hidden {
+      transform: translateX(100%);
+      opacity: 0;
     }
 
     .form-group {
+      margin-bottom: 1.5rem;
       position: relative;
-      margin-bottom: 20px;
     }
 
-    input {
+    input[type="text"],
+    input[type="password"] {
       width: 100%;
-      padding: 12px 40px 12px 15px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 5px;
-      color: #fff;
-      font-size: 16px;
-      outline: none;
-      transition: border-color 0.3s ease;
+      padding: 0.8rem;
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-color);
+      font-size: 1rem;
+      transition: all 0.3s ease;
     }
 
-    input:focus {
-      border-color: #00f0ff;
-      box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
-    }
-
-    input::placeholder {
+    input[type="text"]::placeholder,
+    input[type="password"]::placeholder {
       color: rgba(255, 255, 255, 0.5);
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px var(--glow);
+      outline: none;
     }
 
     .password-toggle {
       position: absolute;
-      right: 15px;
+      right: 1rem;
       top: 50%;
       transform: translateY(-50%);
-      color: rgba(255, 255, 255, 0.5);
+      color: var(--primary);
       cursor: pointer;
+      font-size: 1rem;
       transition: color 0.3s ease;
     }
 
     .password-toggle:hover {
-      color: #00f0ff;
+      color: var(--secondary);
     }
 
     button {
       width: 100%;
-      padding: 12px;
-      background: linear-gradient(90deg, #00f0ff 0%, #ff00ff 100%);
+      padding: 1rem;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
       border: none;
-      border-radius: 5px;
+      border-radius: 10px;
       color: #fff;
-      font-size: 16px;
+      font-size: 1.2rem;
       font-weight: 600;
       cursor: pointer;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      margin-top: 10px;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 15px var(--glow);
     }
 
     button:hover {
       transform: scale(1.05);
-      box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+      box-shadow: 0 0 25px var(--glow);
+    }
+
+    button:active {
+      transform: scale(0.95);
     }
 
     .toggle-link {
-      color: #00f0ff;
-      font-size: 14px;
-      margin-top: 15px;
+      margin-top: 1rem;
+      color: var(--primary);
+      font-size: 0.9rem;
       cursor: pointer;
       transition: color 0.3s ease;
     }
 
     .toggle-link:hover {
-      color: #ff00ff;
-      text-decoration: underline;
+      color: var(--secondary);
     }
 
-    .alert {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #4caf50;
-      color: white;
-      padding: 15px 30px;
-      border-radius: 5px;
-      z-index: 1000;
-      display: none;
-      font-family: 'Poppins', sans-serif;
-      font-size: 16px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .alert.error {
-      background-color: #f44336;
+    @keyframes pulse {
+      0% { opacity: 0.3; }
+      100% { opacity: 0.6; }
+    }
+
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 1.5rem;
+      }
+
+      h2 {
+        font-size: 1.8rem;
+      }
+
+      .form-wrapper {
+        height: 400px;
+      }
+
+      input[type="text"],
+      input[type="password"] {
+        padding: 0.7rem;
+        font-size: 0.9rem;
+      }
+
+      button {
+        padding: 0.8rem;
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
 <body>
   <div class="background-effects"></div>
-  <div id="custom-alert" class="alert"></div>
   <div class="login-container">
     <h2>LED Matrix Timer</h2>
     <div class="form-wrapper">
@@ -224,17 +274,8 @@
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
 
-    function showCustomAlert(message, timeout = 0, isError = false) {
-      const alertBox = document.getElementById('custom-alert');
-      alertBox.textContent = message;
-      alertBox.style.display = 'block';
-      alertBox.classList.toggle('error', isError);
-
-      if (timeout > 0) {
-        setTimeout(() => {
-          alertBox.style.display = 'none';
-        }, timeout);
-      }
+    function showCustomAlert(message) {
+      alert(message);
     }
 
     function showRegisterForm() {
@@ -269,89 +310,86 @@
       const usernameInput = document.getElementById('register-username').value.trim();
       const password = document.getElementById('register-password').value;
       const confirmPassword = document.getElementById('confirm-password').value;
-
+    
       if (!usernameInput || !password || !confirmPassword) {
-        showCustomAlert('Vui lòng nhập đầy đủ thông tin!', 0, true);
+        showCustomAlert('Vui lòng nhập đầy đủ thông tin!');
         return;
       }
-
+    
       if (password !== confirmPassword) {
-        showCustomAlert('Mật khẩu xác nhận không khớp!', 0, true);
+        showCustomAlert('Mật khẩu xác nhận không khớp!');
         return;
       }
-
+    
       if (password.length < 6) {
-        showCustomAlert('Mật khẩu phải có ít nhất 6 ký tự!', 0, true);
+        showCustomAlert('Mật khẩu phải có ít nhất 6 ký tự!');
         return;
       }
-
+    
       const email = `${usernameInput}@ledmatrix.com`;
-
+    
       try {
         console.log('Bắt đầu đăng ký...');
-
-        // Tạo tài khoản trên Firebase Authentication
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        console.log('Người dùng đã được đăng ký trong Authentication:', user.uid);
-
-        // Kiểm tra trạng thái xác thực
-        if (!auth.currentUser) {
-          throw new Error('Người dùng chưa được xác thực.');
-        }
-
-        // Sử dụng giao dịch để tăng số thứ tự
-        console.log('Đang lấy và tăng số thứ tự từ Firestore...');
-        const counterDocRef = doc(db, 'metadata', 'userCounter');
-        const newUserNumber = await runTransaction(db, async (transaction) => {
-          const counterDoc = await transaction.get(counterDocRef);
-          let newCount;
-          if (!counterDoc.exists()) {
-            newCount = 1;
-          } else {
-            newCount = counterDoc.data().count + 1;
+    
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+          console.log('Người dùng đã được đăng ký trong Authentication:', user.uid);
+    
+          // Kiểm tra trạng thái xác thực
+          if (!auth.currentUser) {
+            throw new Error('Người dùng chưa được xác thực.');
           }
-          transaction.set(counterDocRef, { count: newCount }, { merge: true });
-          return newCount;
-        });
-
-        const newUserId = `user${newUserNumber}`; // Tạo ID document: user1, user2,...
-
-        // Lưu thông tin người dùng vào Firestore với ID là userX
-        console.log('Đang lưu thông tin người dùng vào Firestore...');
-        const usersCollection = collection(db, 'users');
-        await setDoc(doc(usersCollection, newUserId), {
-          username: usernameInput,
-          password: password,
-          createdAt: serverTimestamp(),
-          uid: user.uid // Thêm field uid để kiểm tra quyền truy cập
-        });
-        console.log('Thông tin người dùng đã được lưu vào Firestore thành công:', newUserId);
-
-        // Lưu ánh xạ email -> userId
-        await setDoc(doc(db, 'emailToUserId', email), {
-          userId: newUserId
-        });
-
-        await signOut(auth);
-        console.log('Người dùng đã được đăng xuất sau khi đăng ký.');
-
-        // Hiển thị thông báo thành công với timeout
-        showCustomAlert('Đăng ký thành công!', 2000);
-        setTimeout(() => {
+    
+          // Sử dụng giao dịch để tăng số thứ tự
+          console.log('Đang lấy và tăng số thứ tự từ Firestore...');
+          const counterDocRef = doc(db, 'metadata', 'userCounter');
+          const newUserNumber = await runTransaction(db, async (transaction) => {
+            const counterDoc = await transaction.get(counterDocRef);
+            let newCount;
+            if (!counterDoc.exists()) {
+              newCount = 1;
+            } else {
+              newCount = counterDoc.data().count + 1;
+            }
+            transaction.set(counterDocRef, { count: newCount }, { merge: true });
+            return newCount;
+          });
+    
+          const newUserId = `user${newUserNumber}`; // Tạo ID document: user1, user2,...
+    
+          // Lưu thông tin người dùng vào Firestore với ID là userX
+          console.log('Đang lưu thông tin người dùng vào Firestore...');
+          const usersCollection = collection(db, 'users');
+          await setDoc(doc(usersCollection, newUserId), {
+            username: usernameInput,
+            password: password,
+            createdAt: serverTimestamp(),
+            uid: user.uid // Thêm field uid để kiểm tra quyền truy cập
+          });
+          console.log('Thông tin người dùng đã được lưu vào Firestore thành công:', newUserId);
+    
+          // Lưu ánh xạ email -> userId
+          await setDoc(doc(db, 'emailToUserId', email), {
+            userId: newUserId
+          });
+    
+          await signOut(auth);
+          console.log('Người dùng đã được đăng xuất sau khi đăng ký.');
+    
+          showCustomAlert('Đăng ký thành công! Vui lòng đăng nhập.');
           showLoginForm();
-        }, 2000);
+        } catch (error) {
+          if (error.code === 'auth/email-already-in-use') {
+            showCustomAlert('Tên người dùng này đã được sử dụng. Vui lòng đăng nhập hoặc chọn tên khác.');
+            showLoginForm();
+          } else {
+            throw error;
+          }
+        }
       } catch (error) {
         console.error('Lỗi đăng ký:', error);
-        if (error.code === 'auth/email-already-in-use') {
-          showCustomAlert('Tên đăng nhập đã tồn tại!', 0, true);
-        } else if (error.code === 'auth/invalid-email') {
-          showCustomAlert('Email không hợp lệ!', 0, true);
-        } else if (error.code === 'auth/weak-password') {
-          showCustomAlert('Mật khẩu quá yếu! Mật khẩu phải có ít nhất 6 ký tự.', 0, true);
-        } else {
-          showCustomAlert(`Lỗi: ${error.code} - ${error.message}`, 0, true);
-        }
+        showCustomAlert('Lỗi: ' + error.message);
       }
     }
 
@@ -360,7 +398,7 @@
       const password = document.getElementById('login-password').value;
 
       if (!username || !password) {
-        showCustomAlert('Vui lòng nhập đầy đủ tên người dùng và mật khẩu!', 0, true);
+        showCustomAlert('Vui lòng nhập đầy đủ tên người dùng và mật khẩu!');
         return;
       }
 
@@ -384,7 +422,7 @@
         window.location.href = 'index.html';
       } catch (error) {
         console.error('Lỗi đăng nhập:', error);
-        showCustomAlert(`Lỗi: ${error.code} - ${error.message}`, 0, true);
+        showCustomAlert('Lỗi: ' + error.message);
       }
     }
 
