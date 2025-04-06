@@ -274,11 +274,9 @@
     </div>
 
     <script type="module">
-      // Import các module Firebase
       import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
       import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
     
-      // Cấu hình Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyBNxKvJCuAK-SUkHOj3mnSdJCyeiN767ew",
         authDomain: "infouser2-b59dc.firebaseapp.com",
@@ -288,18 +286,15 @@
         appId: "1:806920960455:web:a8eb7260ca618a77bfc1e2"
       };
     
-      // Khởi tạo Firebase
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
     
-      // Kiểm tra trạng thái đăng nhập
       onAuthStateChanged(auth, (user) => {
         if (!user || !localStorage.getItem('isLoggedIn')) {
           window.location.href = 'login.html';
         }
       });
     
-      // Hàm đăng xuất
       function logout() {
         signOut(auth).then(() => {
           localStorage.removeItem('isLoggedIn');
@@ -311,7 +306,6 @@
         });
       }
     
-      // Hiển thị thời gian hiện tại
       function updateCurrentTime() {
         const now = new Date();
         const time = now.toLocaleTimeString('en-US', { hour12: false });
@@ -402,6 +396,11 @@
           alert(`Failed to send data: ${error.message}`);
         }
       }
+    
+      // Gắn các hàm vào window để có thể gọi từ HTML
+      window.logout = logout;
+      window.startCountdown = startCountdown;
+      window.sendToLedMatrix = sendToLedMatrix;
     </script>
   </body>
   </html>
