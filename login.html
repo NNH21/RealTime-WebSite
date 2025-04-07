@@ -256,7 +256,7 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
-    import { getFirestore, collection, doc, setDoc, serverTimestamp, getDoc, runTransaction } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+    import { getFirestore, collection, doc, setDoc, serverTimestamp, getDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyBNxKvJCuAK-SUkHOj3mnSdJCyeiN767ew",
@@ -331,65 +331,59 @@
       try {
         console.log('Bắt đầu đăng ký...');
     
-        try {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          const user = userCredential.user;
-          console.log('Người dùng đã được đăng ký trong Authentication:', user.uid);
+        // Tạo người dùng trong Firebase Authentication
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log('Người dùng đã được đăng ký trong Authentication:', user.uid);
     
-          // Kiểm tra trạng thái xác thực
-          if (!auth.currentUser) {
-            throw new Error('Người dùng chưa được xác thực.');
+        // Lấy danh sách tất cả document trong collection 'users'
+        console.log('Đang lấy danh sách người dùng từ Firestore...');
+        const usersCollection = collection(db, 'users');
+        const usersSnapshot = await getDocs(usersCollection);
+    
+        // Tìm số thứ tự lớn nhất
+        let maxUserNumber = 0;
+        usersSnapshot.forEach(doc => {
+          const docId = doc.id; // docId sẽ có dạng 'user1', 'user2', ...
+          const userNumber = parseInt(docId.replace('user', '')); // Lấy số từ 'user1' -> 1
+          if (!isNaN(userNumber) && userNumber > maxUserNumber) {
+            maxUserNumber = userNumber;
           }
+        });
     
-          // Sử dụng giao dịch để tăng số thứ tự
-          console.log('Đang lấy và tăng số thứ tự từ Firestore...');
-          const counterDocRef = doc(db, 'metadata', 'userCounter');
-          const newUserNumber = await runTransaction(db, async (transaction) => {
-            const counterDoc = await transaction.get(counterDocRef);
-            let newCount;
-            if (!counterDoc.exists()) {
-              newCount = 1;
-            } else {
-              newCount = counterDoc.data().count + 1;
-            }
-            transaction.set(counterDocRef, { count: newCount }, { merge: true });
-            return newCount;
-          });
+        // Tạo ID mới cho người dùng (tăng lên 1)
+        const newUserNumber = maxUserNumber + 1;
+        const newUserId = `user${newUserNumber}`; // Ví dụ: 'user5'
+        console.log('ID người dùng mới:', newUserId);
     
-          const newUserId = `user${newUserNumber}`; // Tạo ID document: user1, user2,...
+        // Lưu thông tin người dùng vào Firestore với ID là userX
+        console.log('Đang lưu thông tin người dùng vào Firestore...');
+        await setDoc(doc(usersCollection, newUserId), {
+          username: usernameInput,
+          password: password, // Lưu ý: Không khuyến khích lưu mật khẩu trong Firestore
+          createdAt: serverTimestamp()
+        });
+        console.log('Thông tin người dùng đã được lưu vào Firestore thành công:', newUserId);
     
-          // Lưu thông tin người dùng vào Firestore với ID là userX
-          console.log('Đang lưu thông tin người dùng vào Firestore...');
-          const usersCollection = collection(db, 'users');
-          await setDoc(doc(usersCollection, newUserId), {
-            username: usernameInput,
-            password: password,
-            createdAt: serverTimestamp(),
-            uid: user.uid // Thêm field uid để kiểm tra quyền truy cập
-          });
-          console.log('Thông tin người dùng đã được lưu vào Firestore thành công:', newUserId);
+        // Lưu ánh xạ email -> userId
+        await setDoc(doc(db, 'emailToUserId', email), {
+          userId: newUserId
+        });
     
-          // Lưu ánh xạ email -> userId
-          await setDoc(doc(db, 'emailToUserId', email), {
-            userId: newUserId
-          });
+        // Đăng xuất người dùng sau khi đăng ký
+        await signOut(auth);
+        console.log('Người dùng đã được đăng xuất sau khi đăng ký.');
     
-          await signOut(auth);
-          console.log('Người dùng đã được đăng xuất sau khi đăng ký.');
-    
-          showCustomAlert('Đăng ký thành công! Vui lòng đăng nhập.');
-          showLoginForm();
-        } catch (error) {
-          if (error.code === 'auth/email-already-in-use') {
-            showCustomAlert('Tên người dùng này đã được sử dụng. Vui lòng đăng nhập hoặc chọn tên khác.');
-            showLoginForm();
-          } else {
-            throw error;
-          }
-        }
+        showCustomAlert('Đăng ký thành công! Vui lòng đăng nhập.');
+        showLoginForm();
       } catch (error) {
-        console.error('Lỗi đăng ký:', error);
-        showCustomAlert('Lỗi: ' + error.message);
+        if (error.code === 'auth/email-already-in-use') {
+          showCustomAlert('Tên người dùng này đã được sử dụng. Vui lòng đăng nhập hoặc chọn tên khác.');
+          showLoginForm();
+        } else {
+          console.error('Lỗi đăng ký:', error);
+          showCustomAlert('Lỗi: ' + error.message);
+        }
       }
     }
 
